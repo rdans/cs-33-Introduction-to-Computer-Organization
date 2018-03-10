@@ -1,0 +1,3 @@
+Hi, My name is Reinaldo Daniswara
+my SID is 604840665
+This is a foo.txt file to do cs 33 lab3

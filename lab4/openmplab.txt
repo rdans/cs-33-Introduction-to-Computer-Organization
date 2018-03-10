@@ -1,0 +1,151 @@
+Reinaldo Daniswara
+604840665
+
+1. Download the given openmp lab from ccle and copy and paste it into the linux
+server 07. To do that, I use WinSCP, downloaded and unzipped the file, and
+then copy and paste all the containing folder to the server.
+
+For step 2 and 3, I tried it on June 5th Monday 7:56 PM
+
+2. We compile normally using command
+	$ make seq
+	$ ./seq
+and the Output is
+FUNC TIME : 0.508396
+TOTAL TIME : 2.532375
+
+
+3. Now, we want to compile with gprof enabled because gprof will give
+approximate statistics on how often each function is called.
+	$ make seq GPROF=1
+  	$ ./seq
+
+FUNC TIME : 0.566497
+TOTAL TIME : 2.444896
+
+	
+	$ gprof seq | less
+
+Give an output :
+
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total
+ time   seconds   seconds    calls  ms/call  ms/call  name
+ 60.80      0.51     0.51       15    34.05    36.77  func1
+ 25.63      0.73     0.22  5177344     0.00     0.00  rand2
+  3.58      0.76     0.03   491520     0.00     0.00  findIndexBin
+  2.38      0.78     0.02        1    20.03   194.44  addSeed
+  2.38      0.80     0.02        1    20.03    20.03  imdilateDisk
+  2.38      0.82     0.02                             sequence
+  1.19      0.83     0.01       15     0.67     0.67  func4
+  1.19      0.84     0.01       15     0.67     2.67  func5
+  0.60      0.84     0.01       15     0.33     0.33  rand1
+  0.00      0.84     0.00   983042     0.00     0.00  round
+  0.00      0.84     0.00       16     0.00     0.00  dilateMatrix
+  0.00      0.84     0.00       15     0.00     0.00  func2
+  0.00      0.84     0.00       15     0.00     0.00  func3
+  0.00      0.84     0.00        2     0.00     0.00  get_time
+  0.00      0.84     0.00        1     0.00     0.00  elapsed_time
+  0.00      0.84     0.00        1     0.00     0.00  fillMatrix
+  0.00      0.84     0.00        1     0.00     0.00  func0
+  0.00      0.84     0.00        1     0.00     0.00  getNeighbors
+:
+
+//----------------------------------------------------------------------------//
+Then I create a copy of func.c file with a name func1.c in order to determine
+how much speed that I get. I need to create a copy of it because everytime
+you test the runtime, it will show you a different func and total time based
+on several factors, such as how many people that uses the server at that time.
+Thus, to get more precise measurement of how much speed that we acquire, it's
+best to create the copy of func.c file as a comparison.
+//-----------------------------------------------------------------------------//
+
+From the GPROF report, we see that the main problem for this code is the func1,2,3,4,5. 
+The performance for those functions are bad. Thus, I want to use loop parallelism
+to speed up the code.I go to func.c and extract parallelism from each function using OpenMP, 
+such as I specify number of threads as 30, and make some private variable. The reason I chose
+30 is because I tried a couple number of threads, and I found out that using thread number
+of 30 will work best on linux server 7 and 9, and also works perfectly no matter what time
+I tried, it seems the func time will be 0.0xxxxx
+
+Inside of every func, I set up omp_set_num_threads(30) so that runtime function to request 30 
+number of threads. Thus, every single thread will execute a copy of the code inside the structured block.
+
+
+	$ cp func.c func1.c
+
+4. Compile with OpenMP enabled:
+	$ make omp
+	$ ./omp
+
+FUNC TIME : 0.049054
+TOTAL TIME : 2.140948
+
+And we have a speedup up to ~10x
+
+5. Now, we need to check the correctness
+
+	$ make check
+
+gcc -o omp  -O3 -fopenmp filter.c main.c func.c util.c -lm
+cp omp filter
+./filter
+FUNC TIME : 0.053603
+TOTAL TIME : 2.347516
+diff --brief correct.txt output.txt
+
+it outputs nothing, then it is correct.
+
+6. I need to do the memory checking.
+
+	$ make omp MTRACE=1
+	$ ./omp
+	$ make checkmem
+
+mtrace filter mtrace.out || true
+
+
+Memory not freed:
+-----------------
+           Address     Size     Caller
+0x00000000015f8060     0xd0  at 0x7fe49673c869
+0x00000000015f8140   0x1e90  at 0x7fe49673c869
+0x00000000015f9fe0     0xc0  at 0x7fe49673c869
+0x00000000015fa0b0     0xf8  at 0x7fe49673c8b9
+0x00000000015fa1b0    0x240  at 0x7fe496c6cc25
+0x00000000015fa400    0x240  at 0x7fe496c6cc25
+0x00000000015fa650    0x240  at 0x7fe496c6cc25
+0x00000000015fa8a0    0x240  at 0x7fe496c6cc25
+0x00000000015faaf0    0x240  at 0x7fe496c6cc25
+0x00000000015fad40    0x240  at 0x7fe496c6cc25
+0x00000000015faf90    0x240  at 0x7fe496c6cc25
+0x00000000015fb1e0    0x240  at 0x7fe496c6cc25
+0x00000000015fb430    0x240  at 0x7fe496c6cc25
+0x00000000015fb680    0x240  at 0x7fe496c6cc25
+0x00000000015fb8d0    0x240  at 0x7fe496c6cc25
+0x00000000015fbb20    0x240  at 0x7fe496c6cc25
+0x00000000015fbd70    0x240  at 0x7fe496c6cc25
+0x00000000015fbfc0    0x240  at 0x7fe496c6cc25
+0x00000000015fc210    0x240  at 0x7fe496c6cc25
+0x00000000015fc460    0x240  at 0x7fe496c6cc25
+0x00000000015fc6b0    0x240  at 0x7fe496c6cc25
+0x00000000015fc900    0x240  at 0x7fe496c6cc25
+0x00000000015fcb50    0x240  at 0x7fe496c6cc25
+0x00000000015fcda0    0x240  at 0x7fe496c6cc25
+0x00000000015fcff0    0x240  at 0x7fe496c6cc25
+0x00000000015fd240    0x240  at 0x7fe496c6cc25
+0x00000000015fd490    0x240  at 0x7fe496c6cc25
+0x00000000015fd6e0    0x240  at 0x7fe496c6cc25
+0x00000000015fd930    0x240  at 0x7fe496c6cc25
+0x00000000015fdb80    0x240  at 0x7fe496c6cc25
+0x00000000015fddd0    0x240  at 0x7fe496c6cc25
+0x00000000015fe020    0x240  at 0x7fe496c6cc25
+0x00000000015fe270    0x240  at 0x7fe496c6cc25
+
+Seems there are some memory that not freed. But however, in Piazza, the TA saidthat
+they won't reduce the point for the memory leak. Thus, I'll just keep it this way.
+ 
+
+

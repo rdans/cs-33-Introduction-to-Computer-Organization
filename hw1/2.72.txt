@@ -1,0 +1,7 @@
+A. In the if statement, maxbytes which has signed int type will be minused by
+  sizeof operator which return unsigned int type, which result in an unsigned
+  int type in the whole operation. This whole operation then will always return
+  a >=0 value, which will always true.
+
+B. We can change the conditional statement by
+  if (maxbytes - ((int) sizeof(val)) >= 0)

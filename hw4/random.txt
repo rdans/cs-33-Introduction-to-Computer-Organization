@@ -1,0 +1,33 @@
+Reinaldo Daniswara
+604840665
+
+Problem 2.89
+A. (float) x == (float) dx
+Yes, it will always yield 1. Rounding from double to float won't have any
+problem because it has a same precision. While there will be a rounding
+on converting from int to float, but both x and dx will be rounded equally.
+
+B. dx - dy == (double) (x-y)
+No, it will bot always yield 1. For example, let say y = INT_MIN and
+x is any positive value. With the assumption of -fwrapv being set, there
+will be a mathematical error on the right hand side. On RHS, x-y will become
+x+y and result in overflow because it only holds 16 bits, then cast it into
+double (32 bits representation). However, on the LHS, there will be no
+mathematical error because dx-dy has 32 bits representations, and there will be
+no overflow occur.
+
+C.(dx + dy) + dz = dx + (dy + dz)
+Yes, it will always yield 1. The maximum value of each dx dy dz is either
+INT_MAX or INT_MIN because dx dy dz are the result of integer x,y, and z that
+casted into double. Thus, there will be no overflow problem happen since
+it has a larger bit rerpresentation to hold the value.
+
+D. (dx * dy) * dz == dx * (dy * dz)
+No, it will not always yield 1 because multiplication in floating point is not
+associative. When it comes to multiplying a very large number, it may cause
+a possibility of overflow due to inexactness of rounding.
+
+E. dx/dx == dz/dz
+No, it willnot always yield 1. For example, if x is 0 and z is nonzero number
+or vice versa, then LHS will be NaN(Not a Number), and RHS will be 1 because
+according to IEE Standard 754, dividing 0 with 0 will result in NaN.

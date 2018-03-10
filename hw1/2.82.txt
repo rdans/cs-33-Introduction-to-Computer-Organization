@@ -1,0 +1,40 @@
+A.(x<y) == (-x>-y)
+No, it won't always yield the value of 1. For example, let say x is equal to 
+INT_MIN which is -2^31. When we negate this value, mathematically it should be
+2^31, however, the max range of positive integer is 2^31-1, thus, it will 
+screw up the computation.
+
+B. ((x+y)<<4) + y-x == 17*y+15*x
+Yes, it will always hold the value of 1, during the lecture, professor mentions
+that shifting the value by n will equal to 2^n. Thus, shifting value of 4 will
+equal to multiply by 2^4 = 16, and we can modify the right hand side because
+17*y+15*x = 16*y + 16*x. Thus, it will always yield 1
+
+C. ~x+~y+1 == ~(x+y)
+Yes, it will always yield 1 because 
+~x = -x-1, and same rule apply with y. Thus,
+~x+~y+1 = -x-1 + (-y-1) +1 = -(x+y)-1
+which, -(x+y)-1 = ~(x+y)
+
+D. (ux-uy) ==-(unsigned) (y-x)
+This doesn't always true because when y-x hold negative value, unsigned will
+  assign the value into a different number. For example:
+  x = -1   y = -6
+  in 4 bit binary, x = 1111 , y = 1010
+  ux = 0001   uy = 0110
+  Wehen we compute ux - uy = -5
+  but, when y-x = -5 = 1011, and after we convert to unsigned, it means 11,
+  negate that value, will get -11. Thus, it is not same.
+
+E. ((x » 2) « 2) <= x
+  Yes, it will always correct because we shift to the right first, then shift to
+  the left, thus it won't change the sign, thus it true. 
+
+F. x >> 1 == (ux >> 1) + (ux & (-1 << 31))
+Since, right hand side will always positive, and left hand side could be negative
+or positive, it is not true. 
+
+G. x % 128 == (x & 127)
+No, let say x = -1 and the value is 11111..11, when we mod with 128, the value 
+will still 1111..11 but, when 111..11 and with 127, there must be a value that has
+0 in it. So, it's not the same

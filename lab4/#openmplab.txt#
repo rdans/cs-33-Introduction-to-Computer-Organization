@@ -1,0 +1,58 @@
+Reinaldo Daniswara
+604840665
+
+1. Download the given openmp lab from ccle and copy and paste it into the linux
+server 07. To do that, I use WinSCP, downloaded and unzipped the file, and
+then copy and paste all the containing folder to the server.
+
+For step 2 and 3, I tried it on June 5th Monday 3:48 PM
+
+2. We compile normally using command
+   $ make seq
+   $ ./seq
+and the Output is
+FUNC TIME : 0.663664
+TOTAL TIME : 3.619525
+
+3. Now, we want to compile with gprof enabled because gprof will give
+approximate statistics on how often each function is called.
+  $ make seq GPROF=1
+  $ ./seq
+FUNC TIME : 0.786578
+TOTAL TIME : 3.640110
+
+      $ gprof seq | less
+
+Give an output :
+
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total
+ time   seconds   seconds    calls  ms/call  ms/call  name
+ 60.80      0.51     0.51       15    34.05    36.77  func1
+ 25.63      0.73     0.22  5177344     0.00     0.00  rand2
+  3.58      0.76     0.03   491520     0.00     0.00  findIndexBin
+  2.38      0.78     0.02        1    20.03   194.44  addSeed
+  2.38      0.80     0.02        1    20.03    20.03  imdilateDisk
+  2.38      0.82     0.02                             sequence
+  1.19      0.83     0.01       15     0.67     0.67  func4
+  1.19      0.84     0.01       15     0.67     2.67  func5
+  0.60      0.84     0.01       15     0.33     0.33  rand1
+  0.00      0.84     0.00   983042     0.00     0.00  round
+  0.00      0.84     0.00       16     0.00     0.00  dilateMatrix
+  0.00      0.84     0.00       15     0.00     0.00  func2
+  0.00      0.84     0.00       15     0.00     0.00  func3
+  0.00      0.84     0.00        2     0.00     0.00  get_time
+  0.00      0.84     0.00        1     0.00     0.00  elapsed_time
+  0.00      0.84     0.00        1     0.00     0.00  fillMatrix
+  0.00      0.84     0.00        1     0.00     0.00  func0
+  0.00      0.84     0.00        1     0.00     0.00  getNeighbors
+:
+
+Then I create a copy of func.c file with a name func1.c in order to determine
+how much speed that I get. I need to create a copy of it because everytime
+you test the runtime, it will show you a different func and total time based
+on several factors, such as how many people that uses the server at that time.
+Thus, to get more precise measurement of how much speed that we acquire, it's
+best to create the copy of func.c file as a comparison.

@@ -1,0 +1,76 @@
+Reinaldo Daniswara (604840665)
+hw 3 - 3rd edition book
+
+3.67
+A.
+
+high address
+================= 
+|		| rsp + 104
+|		| rsp + 96
+|		| rsp + 88
+|		| rsp + 80
+|		| rsp + 72
+|		| rsp + 64
+|		|
+|		|
+|		|
+|		|
+|		|
+|	z	|  rsp + 24
+|	&z	|  rsp + 16
+|	y	|  rsp + 8
+|	x	|  rsp
+================= 
+low address
+ 
+B. It actually passing the stack pointer of rsp and the offset of it.
+
+C. After the call process, there will be a new stack below the return address,
+   thus those new pointer will become a new %rsp. Thus, the rest of the address
+   will increase by 8. For example: s.a[0] will be rsp + 8 , s.a[1] will be
+   rsp + 16.
+
+D. We see that s.a[1](y) and s.a[0](x) are stored in %rcx, and *s.p(z) is saved in %rdx,
+   then their value are assigned to (%rdi), 8(%rdi), 16(%rdi) and store at rsp + 64, which
+   is a location for strB 
+
+E.
+high address
+================= 
+|		| rsp + 104
+|		|
+|		|
+|		| rsp + 88
+|	z	| rsp + 80
+|	x	| rsp + 72
+|	y	| rsp + 64
+|		|
+|		|
+|		|
+|	z	|  rsp + 32
+|	&z	|  rsp + 24
+|	y	|  rsp + 16
+|	x	|  rsp + 8
+|   ret addrs	|  rsp
+================= 
+low address
+
+F. When calling a fuction and passed the argument of it, they didn't copy the structure
+   itself, but rathen than copy the %rsp with their offset in order to access the element
+   of it. And we can modify those value to return the result.
+
+3.70
+A. Offset of the following fields:
+   e1.p = 0
+   e1.y = 8
+   e2.x = 0
+   e2.next = 8
+
+B. Total bytes does the structure require is
+   16 bytes for both e1 and e2.
+
+C. void proc(union ele *up) 
+   {
+	up->e2.x = *(up->e2.next->e1.p) - up->e2.next->e1.y;
+   }

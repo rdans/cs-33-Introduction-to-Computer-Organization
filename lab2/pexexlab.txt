@@ -1,0 +1,36 @@
+Before do anything in lnxsrv07, I want to make sure to update my path to avoid any error using command
+$ PATH=/usr/local/cs/bin:$PATH
+ 
+First, we want to access the executable that in ~eggert/bin64/bin/emacs-25.2 using gdb.
+$ gdb ~eggert/bin64/bin/emacs-25.2 
+
+Then, we set up a breakpoint at Ftimes to get the trace of the key part of the above test
+case
+(gdb) break Ftimes
+
+Now, we need to run the program and stop at the first breakpoint at Ftimes
+(gdb) r -Q -batch -eval '(print (* 1250284240 -1844255039))'
+
+Now, I want to set the debugger to print each instruction as it's executed.
+(gdb) set disassemble-next-line on
+
+
+Then, we step into each function to determine the instruction that executed
+(gdb) si
+
+ 
+I notice, there is an arrow pointing to the instruction, and that arrow actually telling that the pointed
+particular machine instruction has not beet executed yet.  
+
+To keep track of some changing address, we find it using info register
+(gdb) info register
+
+We basically play around with command si and info register, until machine instruction showing retq, which
+means that Ftimes function has been done. Then copy the machine instruction that executed
+in trace.tr
+
+
+
+
+
+

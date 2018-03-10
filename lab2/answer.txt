@@ -1,0 +1,67 @@
+1. The instruction that causes the problem is 
+
+547920 	48 8d 04 ad 02 00 00 00	lea    0x2(,%rbp,4),%rax	rax=0x7fffffff73ab3b42
+
+This instruction caused a problem because before this instruction executed, 
+%rbp=0xdfffffffdceaced0, then it will casued an overflow.
+
+
+2. We want to see the actual code of data.c by accessing using the following command
+$ emacs ~eggert/src/emacs-25.2/src/data.c
+then I search using c-s most-negative-fixnum and it said that it is defined as 
+
+DEFVAR_LISP ("most-negative-fixnum", Vmost_negative_fixnum,
+               doc: /* The smallest value that is representable in a Lisp integer.  */);
+  Vmost_negative_fixnum = make_number (MOST_NEGATIVE_FIXNUM);
+  XSYMBOL (intern_c_string ("most-negative-fixnum"))->constant = 1;
+
+so then I go and check lisp.h, and inside the file, i found this
+
+#define MOST_POSITIVE_FIXNUM (EMACS_INT_MAX >> INTTYPEBITS)
+#define MOST_NEGATIVE_FIXNUM (-1 - MOST_POSITIVE_FIXNUM)
+
+since INTTYPEBITS is 2, and EMACS_INT_MAX is 0x7fffffffffffffff, and we right shifted by 2, 
+we will get 2305843009213693951, and most-negative-fixnum will be -1 - 2305843009213693951 = -2305843009213693952 
+
+3. The multiplication of 4 very large number will result an overflow. 
+if we look at the data.c, we will find 
+ DEFVAR_LISP ("most-positive-fixnum", Vmost_positive_fixnum,
+               doc: /* The largest value that is representable in a Lisp integer.  */);
+  Vmost_positive_fixnum = make_number (MOST_POSITIVE_FIXNUM);
+  XSYMBOL (intern_c_string ("most-positive-fixnum"))->constant = 1;
+
+and on lisp.h, it also define
+#define MOST_POSITIVE_FIXNUM (EMACS_INT_MAX >> INTTYPEBITS)
+
+Thus, after emacs now that the mutiplication is overflow, we know that MOST_POSITIVE_FIXNUM 
+will be 0x1fffffffffffffff and wil be and with INTMASK. What is INTMASK? it also define as
+#define INTMASK (EMACS_INT_MAX >> (INTTYPEBITS - 1)), which is which is 0x3fffffffffffffff, and
+will be anded with the multiplication with fwrap which is 0xc000000000000001, thus, the output will be 1.
+ 
+
+4. -fwrapv will give us a problem because it won't give you an error message when doing the overflow computation.
+  Instead, it will just wrap around and give a wrong value as a result. It may become a problem when we are 
+  doing a large number computation such as large number multiplication because we won't know if the resulting
+  computation is correct or not. 
+
+5. First, I ran these commands.
+$ gcc ~eggert/bin64/bin/emacs-25.2
+(gdb) r -Q -batch -eval '(print (format-time-string "%Y-%m-%d %H:%M:%S %Z" nil (concat (make-string 1000 ?X) "0")))'
+
+Then the program is stop running and shows this output
+
+Program received signal SIGSEGV, Segmentation fault.
+0x00007ffff173949b in __strcpy_sse2_unaligned () from /lib64/libc.so.6
+=> 0x00007ffff173949b <__strcpy_sse2_unaligned+411>:    f3 0f 7f 7f f0  movdqu %                  xmm7,-0x10(%rdi)
+
+Then I look up the value of the address rdi,
+(gdb) i r rdi
+rdi            0x149b00a        21606410
+
+I also look at the value of the address of rdi-10 location because it said so in the instruction, thus I run
+(gdb) x/x 0x149b000
+and this is the output that I got
+0x149b000:      Cannot access memory at address 0x149b000
+Thus, I think this may caused the problem for this command, where it cannot access the value of some particular memory
+address, which may have something to do with the memory allocation. 
+
